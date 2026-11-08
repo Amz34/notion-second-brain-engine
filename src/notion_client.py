@@ -14,11 +14,18 @@ NOTION_VERSION = "2022-06-28"
 class NotionClient:
     def __init__(self, token: Optional[str] = None):
         if not token:
-            token_path = os.path.expanduser("~/.config/notion/token")
-            if os.path.exists(token_path):
-                with open(token_path, "r") as f:
-                    token = f.read().strip()
-            else:
+            candidate_paths = [
+                "/home/ubuntu/.config/notion/token",
+                os.path.expanduser("~/.config/notion/token"),
+                os.path.expanduser("~/agy-argon-home/.config/notion/token")
+            ]
+            for p in candidate_paths:
+                if os.path.exists(p):
+                    with open(p, "r") as f:
+                        token = f.read().strip()
+                        if token:
+                            break
+            if not token:
                 token = os.environ.get("NOTION_API_KEY", "")
         self.token = token
         self.base_url = "https://api.notion.com/v1"
