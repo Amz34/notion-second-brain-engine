@@ -11,7 +11,7 @@ from typing import Dict, Any, List, Optional
 
 class AgentKanbanEngine:
     def __init__(self, repo_dir: Optional[str] = None):
-        self.repo_dir = repo_dir or os.path.expanduser("~/.gemini/antigravity-cli/scratch/notion_second_brain_engine")
+        self.repo_dir = repo_dir or os.getcwd()
 
     def check_gh_cli(self) -> Dict[str, Any]:
         try:

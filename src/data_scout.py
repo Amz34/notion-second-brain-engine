@@ -11,11 +11,21 @@ from typing import Dict, Any, List
 
 class DataScoutAgent:
     def __init__(self, db_path: str = None):
-        self.db_path = db_path or os.path.expanduser("~/.gemini/antigravity-cli/scratch/notion_second_brain_engine/analytics.db")
+        self.db_path = db_path or os.environ.get("DATA_SCOUT_DB_PATH") or os.path.join(os.getcwd(), "analytics.db")
+        self._mem_conn = None
+        if self.db_path == ":memory:":
+            self._mem_conn = sqlite3.connect(":memory:")
+        elif self.db_path != ":memory:":
+            os.makedirs(os.path.dirname(os.path.abspath(self.db_path)), exist_ok=True)
         self._init_db()
 
+    def _get_connection(self):
+        if self._mem_conn is not None:
+            return self._mem_conn
+        return sqlite3.connect(self.db_path)
+
     def _init_db(self):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cur = conn.cursor()
         cur.execute("""
             CREATE TABLE IF NOT EXISTS customer_usage (
@@ -48,11 +58,17 @@ class DataScoutAgent:
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, records)
             conn.commit()
-        conn.close()
+        if self._mem_conn is None:
+            conn.close()
+
+    def close(self):
+        if self._mem_conn is not None:
+            self._mem_conn.close()
+            self._mem_conn = None
 
     def query(self, prompt: str) -> Dict[str, Any]:
         p = prompt.lower()
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cur = conn.cursor()
 
         if "growthschool" in p or "growth school" in p:
@@ -69,7 +85,8 @@ class DataScoutAgent:
         cur.execute(sql)
         rows = cur.fetchall()
         cols = [d[0] for d in cur.description]
-        conn.close()
+        if self._mem_conn is None:
+            conn.close()
 
         results = [dict(zip(cols, r)) for r in rows]
         return {

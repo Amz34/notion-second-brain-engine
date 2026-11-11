@@ -21,8 +21,9 @@ class FeedbackRouterAgent:
             matched = [k for k in keywords if k in text_lower]
             scores[category] = len(matched)
 
-        best_category = max(scores, key=scores.get)
-        if scores[best_category] == 0:
+        best_category = max(scores.keys(), key=lambda k: scores[k])
+        has_match = scores[best_category] > 0
+        if not has_match:
             best_category = "General Inquiry"
 
         priority = "P1 - High" if best_category in ["Bug / Urgent", "Billing / Contract"] else "P2 - Standard"
@@ -31,7 +32,7 @@ class FeedbackRouterAgent:
             "text": text,
             "category": best_category,
             "priority": priority,
-            "confidence": 0.92 if scores[best_category] > 0 else 0.50
+            "confidence": 0.92 if has_match else 0.50
         }
 
     def learn_new_rule(self, category: str, keyword: str):
