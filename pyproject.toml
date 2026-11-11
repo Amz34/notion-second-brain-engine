@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "notion-second-brain-engine"
+version = "1.1.0"
+description = "Autonomous AI second-brain orchestration engine bridging Notion databases, automated Kanban PR workflows, and analytical SQL telemetry."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Amz34" }]
+license = { text = "MIT" }
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
